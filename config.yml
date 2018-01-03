@@ -1,0 +1,57 @@
+
+#Advance Respawn - Spigot Plugin - Created by Matan Rak 2016-2017
+# use {player} in any message as the player's name
+# use {reason} in any message as the custom / default death message
+
+
+#-==={ Respawn Settings }===-#
+Auto_Respawn: true
+Use_Radius: true
+Min_Radius: 30
+Max_Radius: 50
+
+
+#-==={ Death Message Settings }===-#
+Use_Death_Message: true
+Death_Message: '&7{player} &c{reason}'
+#Customize the death reasons in the causes.properties file
+
+
+#-==={ World Settings }===-#
+Disabled_Worlds:
+- disabledworld
+- anotherdisabledworld
+
+
+#-==={ Spectate Death }===-#
+#when a player dies he will respawn in spectator mode until a set time
+Spectate_Respawn: false
+Spectate_Respawn_Delay: 4
+Spectate_Respawn_Progress_Title: '&2Respawning...!'
+Spectate_Respawn_Title1: '&cRespawned!'
+Spectate_Respawn_Title2: '&aYou have respawned &2{blocks} &ablocks away'
+
+
+#-==={ Title / Message Settings }===-#
+# use {blocks} in the messages to add the distance from your last loc!
+Respawn_Titles: true
+Respawn_Title_Line1: '&cRespawned!'
+Respawn_Title_Line2: '&aYou have respawned &2{blocks} &ablocks away'
+
+
+#-==={ Hologram Settings }===-#
+Enable_Holograms: true
+Remove_Holograms_After_Seconds: 10
+Hologram_Line1: '&c{player} &7died.'
+Hologram_Line2: '&c{reason}'
+
+
+
+#-==={ Respawn Commands }===-#
+Player_Run_Command_On_Respawn: false
+Player_Respawn_Commands:
+- spawn
+
+Console_Run_Command_On_Respawn: false
+Console_Respawn_Commands:
+- feed {player}
