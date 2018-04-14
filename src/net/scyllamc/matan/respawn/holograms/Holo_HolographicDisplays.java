@@ -9,19 +9,15 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import net.scyllamc.matan.respawn.ConfigHandler;
-import net.scyllamc.matan.respawn.Methods;
+import net.scyllamc.matan.respawn.Config;
 
 public class Holo_HolographicDisplays implements Holo {
 
-	public void spawnHolo(Player p, String cause) {
+	public void spawnHolo(Player p) {
 
-		if (!ConfigHandler.displayHologram) {
+		if (!Config.SHOW_HOLOGRAMS.getBoolenValue()) 
 			return;
-		}
-
-		int ticks = ConfigHandler.hologramTics;
-
+		
 		ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
 		SkullMeta meta = (SkullMeta) skull.getItemMeta();
 		meta.setOwner(p.getName().toString());
@@ -32,15 +28,15 @@ public class Holo_HolographicDisplays implements Holo {
 		final com.gmail.filoghost.holographicdisplays.api.Hologram hologram = com.gmail.filoghost.holographicdisplays.api.HologramsAPI.createHologram(plugin, loc);
 		hologram.appendItemLine(skull);
 
-		hologram.appendTextLine(Methods.buildString(ConfigHandler.hololine1, p));
-		hologram.appendTextLine(Methods.buildString(ConfigHandler.hololine2, p));
+		hologram.appendTextLine(Config.HOLOGRAM_LINE_1.getFormattedValue(p, 0));
+		hologram.appendTextLine(Config.HOLOGRAM_LINE_2.getFormattedValue(p, 0));
 
 		new BukkitRunnable() {
 			@Override
 			public void run() {
 				hologram.delete();
 			}
-		}.runTaskLater(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), ticks);
+		}.runTaskLater(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), Config.HOLOGRAM_DURATION.getIntValue() * 20);
 
 		return;
 

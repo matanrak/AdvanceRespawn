@@ -16,7 +16,7 @@ public class PublicCommands implements CommandExecutor {
 		if (!(sender instanceof Player)) {
 			return true;
 		}
-
+			
 		if (command.getName().equalsIgnoreCase("AdvanceRespawn")) {
 			Player player = (Player) sender;
 			Player p = player;
@@ -31,13 +31,13 @@ public class PublicCommands implements CommandExecutor {
 
 			if (args[0].equalsIgnoreCase("reload")) {
 				if (p.hasPermission("AdvanceRespawn.reload")) {
+					
 					Bukkit.getPluginManager().getPlugin("AdvanceRespawn").reloadConfig();
-					ConfigHandler.loadSettingsFromConfig();
+
 					p.sendMessage(prefix + ChatColor.GREEN + "Config reloaded!");
 					return true;
 				} else {
-					p.sendMessage(
-							prefix + ChatColor.RED + "You do not have the premission needed to use this command.");
+					p.sendMessage(prefix + ChatColor.RED + "You do not have the premission needed to use this command.");
 					return true;
 				}
 			}

@@ -1,10 +1,10 @@
 package net.scyllamc.matan.respawn;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,105 +18,91 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Events implements Listener {
 
-	public static HashMap<Player, PlayerDeathEvent> deathEvents = new HashMap<Player, PlayerDeathEvent>();
-	public HashMap<OfflinePlayer, String> deathCauses = new HashMap<OfflinePlayer, String>();
-	public static HashMap<Player, Location> deathLocation = new HashMap<Player, Location>();
+	public static HashMap<UUID, PlayerDeathEvent> deathEvents = new HashMap<UUID, PlayerDeathEvent>();
+	public static HashMap<UUID, Location> deathLocations = new HashMap<UUID, Location>();
 
+	
 	@EventHandler
-	public void Death(PlayerDeathEvent e) {
-		deathLocation.put(e.getEntity(), e.getEntity().getLocation());
-		final Player player = e.getEntity();
-		deathEvents.put(player, e);
+	public void Death(PlayerDeathEvent event) {
 
-		String cause = Methods.getDeathMessage(player);
-		deathCauses.put(player, cause);
+		final Player player = event.getEntity();
+		
+		if (Main.deathCauseCache.containsKey(player.getUniqueId()))
+			Main.deathCauseCache.remove(player.getUniqueId());
 
-		if (ConfigHandler.autoRespawn) {
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), new Runnable() {
+		deathLocations.put(player.getUniqueId(), player.getLocation());
+		deathEvents.put(player.getUniqueId(), event);
+
+		if (Config.AUTO_RESPAWN.getBoolenValue()) 
+			Bukkit.getScheduler().scheduleSyncDelayedTask(Main.plugin, new Runnable() {
 				public void run() {
 					player.spigot().respawn();
 				}
 			}, 1L);
-		}
-
-		if (ConfigHandler.useDeathMessage) {
-			e.setDeathMessage(Methods.buildString(ConfigHandler.deathMessage, player));
-		}
+		
+		if (Config.USE_DEATH_MESSAGE.getBoolenValue()) 
+			event.setDeathMessage(Config.DEATH_MESSAGE.getFormattedValue(player, 0).replace("{reason}", Utilities.getDeathMessage(player)));
+		
 	}
 
+	
 	@EventHandler
-	public void onPlayerRespawn(PlayerRespawnEvent e) {
+	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		
-		Player p = e.getPlayer();
-		Location l = p.getWorld().getSpawnLocation();
-		Location respawn = l;
+		Player player = event.getPlayer();
 		
-		if (ConfigHandler.useRadius) {
-
-			if (deathLocation.containsKey(p)) {
-				l = deathLocation.get(p);
-			}
-			int max = ConfigHandler.max;
-			int min = ConfigHandler.min;
-			respawn = Methods.getRandomLocation(l, l.getBlockX() - min, l.getBlockX() + max, l.getBlockZ() - min, l.getBlockZ() + max);
-
-			e.setRespawnLocation(respawn);
-		}
-
-		if (ConfigHandler.disabledWorlds.contains(p.getLocation().getWorld().getName())) {
+		Location respawnLocation = player.getWorld().getSpawnLocation();
+		Location deathLocation = player.getLocation();
+		int distance = (int) deathLocation.distance(respawnLocation);
+		
+		if (Config.DISABLED_WORLDS.getArrayValue().contains(deathLocation.getWorld().getName())) 
 			return;
-		}
+		
+		if (deathLocations.containsKey(player.getUniqueId()))
+			deathLocation = deathLocations.get(player.getUniqueId());
+		
+		if (Config.USE_RADIUS.getBoolenValue()) 
+			respawnLocation = Utilities.getRandomSpawnLocation(deathLocation);
+	
+		if (Config.SHOW_HOLOGRAMS.getBoolenValue() && Main.usingHolograms) 
+			Main.holo.spawnHolo(player);
 
-		if (ConfigHandler.displayHologram) {
-			String cause = "";
-			if (deathCauses.containsKey(p)) {
-				cause = deathCauses.get(p);
-			}
-
-			if (Main.usingHolograms) {
-				Main.holo.spawnHolo(p, cause);
-			}
-
-		}
-
-		if (ConfigHandler.spectateRespawn && deathLocation.containsKey(p) && deathLocation.get(p).getBlockY() > 0) {
-			Methods.deathSpectate(p, l);
-			e.setRespawnLocation(deathLocation.get(p));
-			return;
-		}
-
-		Methods.runCommands(p);
-
-		if (ConfigHandler.displayTitles) {
-			int i = (int) l.distance(respawn);
-			if (Main.title != null) {
-				Main.getTitle().sendTitle(p, 7, 15, 15, ConfigHandler.titleLine1, Methods.titleLine2(p, i) + "");
-			}
-		}
-
+		if (Config.SHOW_RESPAWN_TITLES.getBoolenValue() && Main.title != null) 
+			Main.getTitle().sendTitle(player, 7, 15, 15, Config.RESPAWN_TITLE_LINE_1.getFormattedValue(player, distance), Config.RESPAWN_TITLE_LINE_2.getFormattedValue(player, distance));
+				
+		if (Config.SPECTATE_RESPAWN.getBoolenValue()) 
+			Utilities.deathSpectate(player, deathLocation, respawnLocation);
+		else 
+			Utilities.runCommands(player);
+		
+		event.setRespawnLocation(respawnLocation);
 	}
 
+	
 	@EventHandler
 	public void leave(PlayerQuitEvent e) {
+		
 		Player p = e.getPlayer();
-		if (Methods.specs.containsKey(p.getUniqueId())) {
-			p.setGameMode(Methods.specs.get(p.getUniqueId()));
+		
+		if (Main.spectatorsGamemode.containsKey(p.getUniqueId())) {
+			
+			p.setGameMode(Main.spectatorsGamemode.get(p.getUniqueId()));
 			Location l = p.getLocation();
-			int max = ConfigHandler.max;
-			int min = ConfigHandler.min;
-			Location respawn = Methods.getRandomLocation(l, l.getBlockX() - min, l.getBlockX() + max, l.getBlockZ() - min, l.getBlockZ() + max);
+		
+			Location respawn = Utilities.getRandomSpawnLocation(l);
 			p.teleport(respawn);
-			Methods.specs.remove(p.getUniqueId());
+			
+			Main.spectatorsGamemode.remove(p.getUniqueId());
 		}
 	}
+	
 
 	@EventHandler
 	public void onTeleport(PlayerTeleportEvent event) {
 
-		if (event.getCause().equals(TeleportCause.SPECTATE) && Methods.specs.containsKey(event.getPlayer().getUniqueId())) {
+		if (event.getCause().equals(TeleportCause.SPECTATE) && Main.spectatorsGamemode.containsKey(event.getPlayer().getUniqueId())) {
 			event.setCancelled(true);
 			event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Advance Respawn" + ChatColor.GRAY + " | " + ChatColor.RED + "You cannot teleport while respawning!");
-
 		}
 	}
 

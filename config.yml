@@ -26,24 +26,25 @@ Disabled_Worlds:
 #-==={ Spectate Death }===-#
 #when a player dies he will respawn in spectator mode until a set time
 Spectate_Respawn: false
-Spectate_Respawn_Delay: 4
+Spectate_Respawn_For_Players_In_Creative: false
+Spectate_Respawn_Length: 4
 Spectate_Respawn_Progress_Title: '&2Respawning...!'
-Spectate_Respawn_Title1: '&cRespawned!'
-Spectate_Respawn_Title2: '&aYou have respawned &2{blocks} &ablocks away'
+Spectate_Respawn_Title_Line_1: '&cRespawned!'
+Spectate_Respawn_Title_Line_2: '&aYou have respawned &2{blocks} &ablocks away'
 
 
 #-==={ Title / Message Settings }===-#
-# use {blocks} in the messages to add the distance from your last loc!
-Respawn_Titles: true
-Respawn_Title_Line1: '&cRespawned!'
-Respawn_Title_Line2: '&aYou have respawned &2{blocks} &ablocks away'
+# use %blocks% in the messages to add the distance from your last loc!
+Show_Respawn_Titles: true
+Respawn_Title_Line_1: '&cRespawned!'
+Respawn_Title_Line_2: '&aYou have respawned &2{blocks} &ablocks away'
 
 
 #-==={ Hologram Settings }===-#
-Enable_Holograms: true
-Remove_Holograms_After_Seconds: 10
-Hologram_Line1: '&c{player} &7died.'
-Hologram_Line2: '&c{reason}'
+Show_Holograms: true
+Hologram_Duration: 10
+Hologram_Line_1: '&c{player} &7died.'
+Hologram_Line_2: '&c{reason}'
 
 
 

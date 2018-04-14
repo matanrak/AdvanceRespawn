@@ -1,226 +1,245 @@
 package net.scyllamc.matan.respawn;
 
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.Arrays;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.Material;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.scyllamc.matan.respawn.titles.Title;
 
-public class Methods {
+public class Utilities {
 
-	public static String getDeathMessage(Player p) {
 
-		if (Events.deathEvents.containsKey(p)) {
-			try {
-				PlayerDeathEvent e = Events.deathEvents.get(p);
-
-				if (e == null || e.getEntity() == null || e.getEntity().getLastDamageCause() == null) {
-					return "Died";
-				}
-
-				DamageCause dc = e.getEntity().getLastDamageCause().getCause();
-				String cause = "died!";
-
-				if (e.getEntity() instanceof Player) {
-					Player player = e.getEntity();
-
-					if (ConfigHandler.casue_dictionary.containsKey(dc.toString())) {
-						return ConfigHandler.casue_dictionary.getProperty(dc.toString());
-					}
-
-					if (player.getLastDamageCause() instanceof EntityDamageByEntityEvent) {
-						EntityDamageByEntityEvent ne = (EntityDamageByEntityEvent) e.getEntity().getLastDamageCause();
-						Entity damager = ne.getDamager();
-
-						if (!damager.getType().equals(EntityType.PLAYER) || !damager.getType().equals(EntityType.ARROW)) {
-							cause = ConfigHandler.casue_dictionary.getProperty("KILLED_BY_ENTITY");
-							cause = cause.replace("{killer}", ne.getDamager().getType().toString().toLowerCase());
-							return cause;
-						}
-
-						String killername = " an unknown killer";
-
-						if (damager.getType().equals(EntityType.PLAYER)) {
-							killername = firstLetterCaps(ne.getDamager().getType().toString().toLowerCase());
-							if (damager.getName() != null) {
-								killername = damager.getName();
-							}
-							if (damager.getCustomName() != null) {
-								killername = damager.getCustomName();
-							}
-						}
-
-						if (damager.getType().equals(EntityType.ARROW) || damager.getType().equals(EntityType.SPLASH_POTION)) {
-							Projectile proj = (Projectile) damager;
-							Entity attacker = (Entity) proj.getShooter();
-							if (attacker.getName() != null) {
-								killername = attacker.getName();
-							}
-						} else {
-							killername = firstLetterCaps(ne.getDamager().getType().toString().toLowerCase());
-						}
-
-						cause = ConfigHandler.casue_dictionary.getProperty("KILLED_BY_PLAYER");
-						cause = cause.replace("{killer}", killername);
-						return cause;
-					}
-
-				}
-
-				return cause;
-
-			} catch (NullPointerException exception) {
-				exception.printStackTrace();
-				return "Died";
-			}
-		}
+	public static String getDeathMessage(Player player) {
+				
+		if (Main.deathCauseCache.containsKey(player.getUniqueId()))
+			return Main.deathCauseCache.get(player.getUniqueId());
 		
-		return "died";
+		String defaultCause = format(Main.casue_dictionary.getProperty("UNKNOWN"), player);
+		PlayerDeathEvent event = Events.deathEvents.get(player.getUniqueId());
+		String cause = defaultCause;
+		
+		Bukkit.broadcastMessage("H0");
+
+		if (!Events.deathEvents.containsKey(player.getUniqueId()) || event == null || event.getEntity() == null || event.getEntity().getLastDamageCause() == null)
+			cause = defaultCause;
+		
+		if (!(event.getEntity() instanceof Player))
+			cause = "";
+		
+		Bukkit.broadcastMessage("H0.2");
+
+		DamageCause damageCause = event.getEntity().getLastDamageCause().getCause();
+		
+		if (Main.casue_dictionary.containsKey(damageCause.toString())) 
+			cause = format(Main.casue_dictionary.getProperty(damageCause.toString()), player);
+
+		Bukkit.broadcastMessage("H1");
+
+		if (player.getLastDamageCause() instanceof EntityDamageByEntityEvent) {
+			
+			EntityDamageByEntityEvent combatEvent = (EntityDamageByEntityEvent) event.getEntity().getLastDamageCause();
+			Entity damager = combatEvent.getDamager();
+			
+			Bukkit.broadcastMessage("Z2");
+
+			if (damager instanceof Projectile) {
+				
+				Projectile projectile = (Projectile) damager;
+				
+				if (projectile.getShooter() instanceof Player)
+					if (projectile instanceof Arrow)
+						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_PLAYER_ARROW"), player).replace("{killer}", ((Player) damager).getName()); 
+					else 
+						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_PLAYER_PROJECTILE"), player).replace("{killer}", ((Player) damager).getName()); 
+				else
+					if (projectile instanceof Arrow)
+						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_ENTITY_ARROW"), player).replace("{killer}", damager.getType().toString().toLowerCase()); 
+					else 
+						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_ENTITY_PROJECTILE"), player).replace("{killer}", damager.getType().toString().toLowerCase()); 
+			
+			}else if (damager instanceof Player)
+				cause = format(Main.casue_dictionary.getProperty("KILLED_BY_PLAYER"), player).replace("{killer}", ((Player) damager).getName());
+			else
+				cause = format(Main.casue_dictionary.getProperty("KILLED_BY_ENTITY"), player).replace("{killer}", damager.getType().toString().toLowerCase());
+		}
+
+		Main.deathCauseCache.put(player.getUniqueId(), cause);
+		Bukkit.broadcastMessage("Added to cache");
+		return cause;
 	}
 
-	public static String firstLetterCaps(String data) {
-		String firstLetter = data.substring(0, 1).toUpperCase();
-		String restLetters = data.substring(1).toLowerCase();
-		return firstLetter + restLetters;
+	
+	public static String firstLetterCaps(String string) {
+		return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase();
 	}
 
-	public static Location getRandomLocation(Location player, int Xminimum, int Xmaximum, int Zminimum, int Zmaximum) {
-		World world = player.getWorld();
-		int randomX = 0;
-		int randomZ = 0;
-		double x = 0.0D;
-		double z = 0.0D;
-		randomX = Xminimum + (int) (Math.random() * (Xmaximum - Xminimum + 1));
-		randomZ = Zminimum + (int) (Math.random() * (Zmaximum - Zminimum + 1));
-		x = Double.parseDouble(Integer.toString(randomX));
-		z = Double.parseDouble(Integer.toString(randomZ));
-		x = x + 0.5;
-		z = z + 0.5;
-		Location n = new Location(world, x, world.getHighestBlockYAt(new Location(world, x, player.getY(), z)), z);
-		return n;
+	
+	public static String format(String string, Player p, int numericValue) {
+		
+		string = string.replace("{damage}", String.valueOf(numericValue));
+		string = string.replace("{blocks}", String.valueOf(numericValue));
+		string = string.replace("{player}", p.getName());
+		
+		if (numericValue != Integer.MAX_VALUE)
+			string = string.replace("{cause}", Utilities.getDeathMessage(p));
+	
+		return ChatColor.translateAlternateColorCodes('&', string);
+	}
+	
+	
+	public static String format(String string, Player p) {
+		return format(string, p, Integer.MAX_VALUE);
+	}
+	
+	
+	@SuppressWarnings("deprecation")
+	public static Location getTopBlock(Location loc) {
+
+		List<Integer> unspawnable = Arrays.asList(0, 18, 161);
+		Location current = loc;
+
+		if (unspawnable.contains(loc.getBlock().getTypeId())) {
+
+			while (unspawnable.contains(current.getBlock().getTypeId())) 
+				current = current.add(0, -1, 0);
+			
+
+			if (loc.add(0, 1, 0).getBlock().getType() == Material.AIR)
+				return current;
+			
+		}
+
+		return loc;
 	}
 
-	public static HashMap<UUID, GameMode> specs = new HashMap<UUID, GameMode>();
+	
+	@SuppressWarnings("deprecation")
+	public static boolean isSpawnable(Location loc) {
 
-	public static void deathSpectate(final Player p, final Location l) {
-		final GameMode gm = p.getGameMode();
-		final Location fl = p.getLocation();
-		specs.put(p.getUniqueId(), gm);
-		p.setGameMode(GameMode.SPECTATOR);
-		int c = ConfigHandler.spectateTicks - 1;
-		final Title t = Main.getTitle();
+		if (loc.getWorld().getHighestBlockAt(loc).getY() == 0)
+			return false;
 
-		t.sendTitle(p, 14, 30, 30, ConfigHandler.spectateprogresstitle, ChatColor.RED + "" + c);
-		p.teleport(fl);
+		Location current = loc, current_tree = loc;
 
-		new BukkitRunnable() {
-			@Override
+		while (current.getBlock().getType() == Material.AIR && current.getBlock().getY() >= 0)
+			current = current.add(0, -1, 0);
+
+		if (current.getBlock().isLiquid())
+			return false;
+
+		while (Arrays.asList(18, 161).contains(current_tree.getBlock().getTypeId()) && current_tree.getBlock().getY() >= 0)
+			current_tree = current_tree.add(0, -1, 0);
+
+		if (Arrays.asList(17, 162).contains(current_tree.getBlock().getTypeId()))
+			return false;
+
+		return true;
+	}
+
+	
+	public static Location getRandomLocationAround(Location loc) {
+
+		int max = Config.MAX_RADIUS.getIntValue(), min = Config.MIN_RADIUS.getIntValue();
+		int Xmax = loc.getBlockX() + max, Xmin = loc.getBlockX() - min;
+		int Zmax = loc.getBlockZ() + max, Zmin = loc.getBlockZ() - min;
+
+		int randomX = Xmin + (int) (Math.random() * (Xmax - Xmin + 1));
+		int randomZ = Zmin + (int) (Math.random() * (Zmax - Zmin + 1));
+
+		Double x = Double.parseDouble(Integer.toString(randomX));
+		Double z = Double.parseDouble(Integer.toString(randomZ));
+
+		return getTopBlock(new Location(loc.getWorld(), x, loc.getWorld().getHighestBlockYAt(x.intValue(), z.intValue()), z));
+	}
+
+	
+	public static Location getRandomSpawnLocation(Location loc) {
+
+		Location selected = getRandomLocationAround(loc);
+		int count = 0;
+
+		while ((selected == null || !isSpawnable(selected)) && count < 50) {
+
+			selected = getRandomLocationAround(loc);
+			count++;
+		}
+
+		if (!isSpawnable(selected))
+			return loc.getWorld().getSpawnLocation();
+
+		return selected;
+	}
+
+	
+	public static void deathSpectate(Player player, Location deathLocation, Location respawnLocation) {
+
+		final Title title = Main.getTitle();
+		final GameMode gameMode = player.getGameMode();
+
+		if (gameMode == GameMode.CREATIVE && !Config.SPECTATE_RESPAWN_FOR_PLAYERS_IN_CREATIVE.getBoolenValue())
+			return;
+		
+		int duration = Config.SPECTATE_RESPAWN_LENGTH.getIntValue();
+
+		title.sendTitle(player, 14, 30, 30, Config.SPECTATE_RESPAWN_PROGRESS_TITLE.getFormattedValue(player, 0), ChatColor.RED + "" + duration);
+		Main.spectatorsGamemode.put(player.getUniqueId(), gameMode);
+		player.setGameMode(GameMode.SPECTATOR);
+
+		Bukkit.getScheduler().scheduleSyncDelayedTask(Main.plugin, new Runnable() {
 			public void run() {
-
-				p.teleport(l);
-
+				player.teleport(deathLocation);
 			}
-		}.runTaskLater(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), 2);
-
+		}, 1L);
+		
 		new BukkitRunnable() {
-			int count = ConfigHandler.spectateTicks;
+			
+			int counter = duration;
 
 			@Override
 			public void run() {
 
-				if (count > 0) {
-					t.sendTitle(p, 7, 15, 15, ConfigHandler.spectateprogresstitle, ChatColor.RED + "" + count);
-				}
-
-				if (count <= 0) {
-					p.setGameMode(gm);
-					int max = ConfigHandler.max;
-					int min = ConfigHandler.min;
-					Location respawn = Methods.getRandomLocation(l, l.getBlockX() - min, l.getBlockX() + max, l.getBlockZ() - min, l.getBlockZ() + max);
-					String line2 = spectateTitleLine2(p, Math.round(respawn.distance(fl)));
-					t.sendTitle(p, 7, 15, 15, ConfigHandler.spectatetitleLine1, line2);
-					p.teleport(respawn);
-					this.cancel();
-					runCommands(p);
-					specs.remove(p.getUniqueId());
+				if (counter > 0) {
+					title.sendTitle(player, 7, 15, 15, Config.SPECTATE_RESPAWN_PROGRESS_TITLE.getFormattedValue(player, 0), ChatColor.RED + "" + counter);
+					counter--;
 					return;
 				}
 
-				count--;
+				player.setGameMode(gameMode);
+				player.teleport(respawnLocation);
+				Main.spectatorsGamemode.remove(player.getUniqueId());
+				int distance = (int) Math.round(deathLocation.distance(respawnLocation));
+				title.sendTitle(player, 7, 15, 15, Config.SPECTATE_RESPAWN_TITLE_LINE_1.getFormattedValue(player, distance), Config.SPECTATE_RESPAWN_TITLE_LINE_2.getFormattedValue(player, distance));
+
+				runCommands(player);
+
+				this.cancel();
 			}
-		}.runTaskTimer(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), 20, 20);
+		}.runTaskTimer(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), 2, 20);
 
-	}
-
-	public static String buildString(String s, Player p) {
-		String msg = s;
-
-		char ch = '&';
-		msg = ChatColor.translateAlternateColorCodes(ch, s);
-
-		msg = msg.replace("{player}", p.getName());
-		msg = msg.replace("{reason}", getDeathMessage(p));
-
-		return msg;
-	}
-
-	public static String colorString(String s) {
-		char ch = '&';
-		return ChatColor.translateAlternateColorCodes(ch, s);
 	}
 
 	public static void runCommands(Player p) {
-		if (ConfigHandler.player_respawncommand) {
-			for (String s : ConfigHandler.player_respawncommands) {
 
-				p.performCommand(buildString(s,p));
-			}
-		}
+		if (Config.PLAYER_RUN_COMMAND_ON_RESPAWN.getBoolenValue())
+			for (String s : Config.PLAYER_RESPAWN_COMMANDS.getArrayValue())
+				p.performCommand(s.replace("{player}", p.getName().toLowerCase()));
 
-		if (ConfigHandler.console_respawncommand) {
-			for (String s : ConfigHandler.console_respawncommands) {
-				String c = s.replace("{player}", p.getName().toLowerCase());
-				Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), c);
-			}
-		}
+		if (Config.CONSOLE_RESPAWN_COMMANDS.getBoolenValue())
+			for (String s : Config.CONSOLE_RESPAWN_COMMANDS.getArrayValue())
+				Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), s.replace("{player}", p.getName().toLowerCase()));
 	}
 
-	public static String titleLine2(Player p, int distance) {
-		String line2 = buildString(ConfigHandler.titleLine2, p);
-		try {
-			if (line2.contains("{blocks}")) {
-				line2 = line2.replace("{blocks}", distance + "");
-			}
-			line2 = Methods.colorString(line2);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return line2;
-	}
-
-	public static String spectateTitleLine2(Player p, long l) {
-		String line2 = buildString(ConfigHandler.spectatetitleLine2, p);
-		try {
-			if (line2.contains("{blocks}")) {
-				line2 = line2.replace("{blocks}", l + "");
-			}
-			line2 = Methods.colorString(line2);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return line2;
-	}
 }
