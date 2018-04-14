@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 public class PublicCommands implements CommandExecutor {
 
+	
 	public String prefix = ChatColor.DARK_GREEN + "Advance Respawn" + ChatColor.GRAY.toString() + " | ";
 
 	public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
@@ -19,7 +20,6 @@ public class PublicCommands implements CommandExecutor {
 			
 		if (command.getName().equalsIgnoreCase("AdvanceRespawn")) {
 			Player player = (Player) sender;
-			Player p = player;
 
 			if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
 				player.sendMessage(prefix + ChatColor.GREEN + "Commands:");
@@ -28,16 +28,16 @@ public class PublicCommands implements CommandExecutor {
 				player.sendMessage(ChatColor.GREEN + "  /AR Reload" + ChatColor.GRAY + " | Reloads the config");
 				return true;
 			}
-
+			
 			if (args[0].equalsIgnoreCase("reload")) {
-				if (p.hasPermission("AdvanceRespawn.reload")) {
+				if (player.hasPermission("AdvanceRespawn.reload")) {
 					
 					Bukkit.getPluginManager().getPlugin("AdvanceRespawn").reloadConfig();
 
-					p.sendMessage(prefix + ChatColor.GREEN + "Config reloaded!");
+					player.sendMessage(prefix + ChatColor.GREEN + "Config reloaded!");
 					return true;
 				} else {
-					p.sendMessage(prefix + ChatColor.RED + "You do not have the premission needed to use this command.");
+					player.sendMessage(prefix + ChatColor.RED + "You do not have the premission needed to use this command.");
 					return true;
 				}
 			}

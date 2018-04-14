@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.WorldBorder;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -21,7 +22,7 @@ import net.scyllamc.matan.respawn.titles.Title;
 
 public class Utilities {
 
-
+	
 	public static String getDeathMessage(Player player) {
 				
 		if (Main.deathCauseCache.containsKey(player.getUniqueId()))
@@ -31,30 +32,22 @@ public class Utilities {
 		PlayerDeathEvent event = Events.deathEvents.get(player.getUniqueId());
 		String cause = defaultCause;
 		
-		Bukkit.broadcastMessage("H0");
-
 		if (!Events.deathEvents.containsKey(player.getUniqueId()) || event == null || event.getEntity() == null || event.getEntity().getLastDamageCause() == null)
 			cause = defaultCause;
 		
 		if (!(event.getEntity() instanceof Player))
 			cause = "";
 		
-		Bukkit.broadcastMessage("H0.2");
-
 		DamageCause damageCause = event.getEntity().getLastDamageCause().getCause();
 		
 		if (Main.casue_dictionary.containsKey(damageCause.toString())) 
 			cause = format(Main.casue_dictionary.getProperty(damageCause.toString()), player);
-
-		Bukkit.broadcastMessage("H1");
 
 		if (player.getLastDamageCause() instanceof EntityDamageByEntityEvent) {
 			
 			EntityDamageByEntityEvent combatEvent = (EntityDamageByEntityEvent) event.getEntity().getLastDamageCause();
 			Entity damager = combatEvent.getDamager();
 			
-			Bukkit.broadcastMessage("Z2");
-
 			if (damager instanceof Projectile) {
 				
 				Projectile projectile = (Projectile) damager;
@@ -77,7 +70,6 @@ public class Utilities {
 		}
 
 		Main.deathCauseCache.put(player.getUniqueId(), cause);
-		Bukkit.broadcastMessage("Added to cache");
 		return cause;
 	}
 
@@ -126,9 +118,26 @@ public class Utilities {
 	}
 
 	
+	public static boolean insideWorldBorder(Location loc) {
+		
+		WorldBorder border = loc.getWorld().getWorldBorder();
+
+		double maxX = border.getCenter().getX() + (border.getSize() / 2);
+		double minX = border.getCenter().getX() - (border.getSize() / 2);
+
+		double maxZ = border.getCenter().getZ() + (border.getSize() / 2);
+		double minZ = border.getCenter().getZ() - (border.getSize() / 2);
+
+		return (loc.getX() < maxX && loc.getX() > minX) &&  (loc.getZ() < maxZ && loc.getZ() > minZ);
+	}
+	
+	
 	@SuppressWarnings("deprecation")
 	public static boolean isSpawnable(Location loc) {
-
+				
+		if (!insideWorldBorder(loc))
+			return false;
+		
 		if (loc.getWorld().getHighestBlockAt(loc).getY() == 0)
 			return false;
 
