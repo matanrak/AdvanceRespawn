@@ -1,6 +1,6 @@
 name: AdvanceRespawn
 main: net.scyllamc.matan.respawn.Main
-version: 6.1.3
+version: 7.0.2
 description: AdvanceRespawn
 load: POSTWORLD
 author: Matan Rak

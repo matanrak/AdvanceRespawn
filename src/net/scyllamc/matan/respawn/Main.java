@@ -57,7 +57,7 @@ public class Main extends JavaPlugin implements Listener {
 		Bukkit.getPluginManager().registerEvents(this, this);
 		Bukkit.getPluginManager().registerEvents(new Events(), this);
 		
-		getCommand("AdvanceRespawn").setExecutor(new PublicCommands());
+		getCommand("AdvanceRespawn").setExecutor(new Commands());
 		
 		initializeProperties();
 		
@@ -77,12 +77,10 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public void onDisable() {
 
-		if (Bukkit.getPluginManager().isPluginEnabled("HolographicDisplays")) {
-			for (com.gmail.filoghost.holographicdisplays.api.Hologram hologram : com.gmail.filoghost.holographicdisplays.api.HologramsAPI.getHolograms(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"))) {
+		if (Bukkit.getPluginManager().isPluginEnabled("HolographicDisplays")) 
+			for (com.gmail.filoghost.holographicdisplays.api.Hologram hologram : com.gmail.filoghost.holographicdisplays.api.HologramsAPI.getHolograms(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"))) 
 				hologram.delete();
-			}
-		}
-
+			
 		for (Entry<UUID, GameMode> entry : spectatorsGamemode.entrySet()) {
 			((HumanEntity) Bukkit.getOfflinePlayer(entry.getKey())).setGameMode(entry.getValue());
 			((HumanEntity) Bukkit.getOfflinePlayer(entry.getKey())).teleport(Events.deathLocations.get(entry.getKey()));
@@ -107,7 +105,6 @@ public class Main extends JavaPlugin implements Listener {
 
 		try {
 			version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-
 		} catch (ArrayIndexOutOfBoundsException whatVersionAreYouUsingException) {
 			return false;
 		}

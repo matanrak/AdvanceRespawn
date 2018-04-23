@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -31,8 +30,9 @@ public enum Config {
 	DISABLED_WORLDS(new ArrayList<String>()),
 
 	SPECTATE_RESPAWN(false),
-	SPECTATE_RESPAWN_FOR_PLAYERS_IN_CREATIVE(false),
 	SPECTATE_RESPAWN_LENGTH(4),
+	SPECTATE_RESPAWN_MAX_FLY_DISTANCE(100),
+	SPECTATE_RESPAWN_FOR_PLAYERS_IN_CREATIVE(false),
 	SPECTATE_RESPAWN_PROGRESS_TITLE("&2Respawning...!"),
 	SPECTATE_RESPAWN_TITLE_LINE_1("&cRespawned!"),
 	SPECTATE_RESPAWN_TITLE_LINE_2("&aYou have respawned &2%blocks% &ablocks away"),
@@ -54,17 +54,11 @@ public enum Config {
 	
 	public static Plugin plugin = Main.plugin;
 	public static FileConfiguration config = plugin.getConfig();
-
-
+	
+	
 	@SuppressWarnings({ "resource", "unchecked" })
-	public static void updateConfigVersion() {
-				
-		Bukkit.broadcastMessage("Updating config values");
-		
-		plugin.reloadConfig();
-		
-		final Map<String, Object> configValues = new HashMap<String, Object>(plugin.getConfig().getValues(true));
-		
+	public static void saveConfig(Map<String, Object> configValues) {
+								
 		File configFile = new File(plugin.getDataFolder(), "config.yml");
 		configFile.delete();
 		
@@ -108,7 +102,13 @@ public enum Config {
 			e.printStackTrace();
 		}
 	}
+	
 
+	public static void updateConfigVersion() {
+		plugin.reloadConfig();
+		saveConfig(new HashMap<String, Object>(plugin.getConfig().getValues(true)));
+	}
+	
 	
 	private Object value;
 
@@ -117,6 +117,18 @@ public enum Config {
 		this.value = t;
 	}
 
+	
+	public void updateValue(Object newValue) {
+		
+		plugin.reloadConfig();
+		HashMap<String, Object> baseValues = new HashMap<String, Object>(plugin.getConfig().getValues(true));
+		
+		if(baseValues.containsKey(toConfigString()))
+			baseValues.put(toConfigString(), newValue);
+		
+		saveConfig(baseValues);
+	}
+	
 	
 	public String toConfigString() {		
 		return Stream.of(this.toString().split("_")).map(entry -> Utilities.firstLetterCaps(entry)).collect(Collectors.joining("_"));
@@ -128,7 +140,6 @@ public enum Config {
 		if (config.contains(this.toConfigString())) 
 			return config.getString(this.toConfigString());
 		
-		Bukkit.broadcastMessage("BOOM : " + this.toConfigString());
 		updateConfigVersion();
 		return value.toString();
 	}
@@ -139,7 +150,6 @@ public enum Config {
 		if (config.contains(this.toConfigString())) 
 			return config.getInt(this.toConfigString());
 		
-		Bukkit.broadcastMessage("BOOM : " + this.toConfigString());
 		updateConfigVersion();
 		return (int) value;
 	}
@@ -150,7 +160,6 @@ public enum Config {
 		if (config.contains(this.toConfigString())) 
 			return config.getBoolean(this.toConfigString());
 		
-		Bukkit.broadcastMessage("BOOM : " + this.toConfigString());
 		updateConfigVersion();
 		return (boolean) value;
 	}
@@ -163,7 +172,6 @@ public enum Config {
 		if (config.contains(this.toConfigString())) 
 			return (ArrayList<String>) config.getList(this.toConfigString());
 		
-		Bukkit.broadcastMessage("BOOM : " + this.toConfigString());
 		updateConfigVersion();
 		return (ArrayList<String>) value;
 	}

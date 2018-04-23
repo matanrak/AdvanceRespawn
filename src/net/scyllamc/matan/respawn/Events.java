@@ -30,7 +30,12 @@ public class Events implements Listener {
 		if (Main.deathCauseCache.containsKey(player.getUniqueId()))
 			Main.deathCauseCache.remove(player.getUniqueId());
 
-		deathLocations.put(player.getUniqueId(), player.getLocation());
+		Location deathLocation = player.getLocation();
+		
+		if(deathLocation.getBlockY() <= 0)
+			deathLocation = deathLocation.getWorld().getHighestBlockAt(deathLocation).getLocation();
+		
+		deathLocations.put(player.getUniqueId(), deathLocation);
 		deathEvents.put(player.getUniqueId(), event);
 
 		if (Config.AUTO_RESPAWN.getBoolenValue()) 
@@ -42,7 +47,6 @@ public class Events implements Listener {
 		
 		if (Config.USE_DEATH_MESSAGE.getBoolenValue()) 
 			event.setDeathMessage(Config.DEATH_MESSAGE.getFormattedValue(player, 0).replace("{reason}", Utilities.getDeathMessage(player)));
-		
 	}
 
 	
@@ -53,13 +57,14 @@ public class Events implements Listener {
 		
 		Location respawnLocation = player.getWorld().getSpawnLocation();
 		Location deathLocation = player.getLocation();
+		
+		if (deathLocations.containsKey(player.getUniqueId()))
+			deathLocation = deathLocations.get(player.getUniqueId());
+		
 		int distance = (int) deathLocation.distance(respawnLocation);
 		
 		if (Config.DISABLED_WORLDS.getArrayValue().contains(deathLocation.getWorld().getName())) 
 			return;
-		
-		if (deathLocations.containsKey(player.getUniqueId()))
-			deathLocation = deathLocations.get(player.getUniqueId());
 		
 		if (Config.USE_RADIUS.getBoolenValue()) 
 			respawnLocation = Utilities.getRandomSpawnLocation(deathLocation);
@@ -70,11 +75,13 @@ public class Events implements Listener {
 		if (Config.SHOW_RESPAWN_TITLES.getBoolenValue() && Main.title != null) 
 			Main.getTitle().sendTitle(player, 7, 15, 15, Config.RESPAWN_TITLE_LINE_1.getFormattedValue(player, distance), Config.RESPAWN_TITLE_LINE_2.getFormattedValue(player, distance));
 				
-		if (Config.SPECTATE_RESPAWN.getBoolenValue()) 
+		if (Config.SPECTATE_RESPAWN.getBoolenValue()) {
+			event.setRespawnLocation(deathLocation);
 			Utilities.deathSpectate(player, deathLocation, respawnLocation);
-		else 
-			Utilities.runCommands(player);
+			return;
+		}
 		
+		Utilities.runCommands(player);
 		event.setRespawnLocation(respawnLocation);
 	}
 

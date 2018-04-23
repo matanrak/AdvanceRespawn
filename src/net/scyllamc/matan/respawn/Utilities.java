@@ -48,25 +48,32 @@ public class Utilities {
 			EntityDamageByEntityEvent combatEvent = (EntityDamageByEntityEvent) event.getEntity().getLastDamageCause();
 			Entity damager = combatEvent.getDamager();
 			
-			if (damager instanceof Projectile) {
-				
-				Projectile projectile = (Projectile) damager;
-				
-				if (projectile.getShooter() instanceof Player)
-					if (projectile instanceof Arrow)
-						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_PLAYER_ARROW"), player).replace("{killer}", ((Player) damager).getName()); 
-					else 
-						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_PLAYER_PROJECTILE"), player).replace("{killer}", ((Player) damager).getName()); 
-				else
-					if (projectile instanceof Arrow)
-						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_ENTITY_ARROW"), player).replace("{killer}", damager.getType().toString().toLowerCase()); 
-					else 
-						cause = format(Main.casue_dictionary.getProperty("KILLED_BY_ENTITY_PROJECTILE"), player).replace("{killer}", damager.getType().toString().toLowerCase()); 
+			String property = "KILLED_BY_ENTITY";
+			String killerName = damager.getType().toString().toLowerCase();
 			
-			}else if (damager instanceof Player)
-				cause = format(Main.casue_dictionary.getProperty("KILLED_BY_PLAYER"), player).replace("{killer}", ((Player) damager).getName());
-			else
-				cause = format(Main.casue_dictionary.getProperty("KILLED_BY_ENTITY"), player).replace("{killer}", damager.getType().toString().toLowerCase());
+			if (damager instanceof Projectile) 
+								
+				if (((Projectile) damager).getShooter() instanceof Player)
+					if (damager instanceof Arrow)
+						property = "KILLED_BY_PLAYER_ARROW";
+					else 
+						property = "KILLED_BY_PLAYER_PROJECTILE";
+				else
+					if (damager instanceof Arrow)
+						cause = "KILLED_BY_ENTITY_ARROW"; 
+					else 
+						cause = "KILLED_BY_ENTITY_PROJECTILE"; 
+			
+			else if (damager instanceof Player)
+				property = "KILLED_BY_PLAYER";
+			
+			if (property.contains("PLAYER"))
+				if (property.contains("ARROW") || property.contains("PROJECTILE"))
+					killerName = ((Entity) ((Projectile) damager).getShooter()).getName();
+				else 
+					killerName = damager.getName();
+			
+			cause = format(Main.casue_dictionary.getProperty(property), player).replace("{killer}", killerName);
 		}
 
 		Main.deathCauseCache.put(player.getUniqueId(), cause);
@@ -105,7 +112,7 @@ public class Utilities {
 
 		if (unspawnable.contains(loc.getBlock().getTypeId())) {
 
-			while (unspawnable.contains(current.getBlock().getTypeId())) 
+			while (unspawnable.contains(current.getBlock().getTypeId()) && current.getBlockY() > 0) 
 				current = current.add(0, -1, 0);
 			
 
@@ -198,7 +205,7 @@ public class Utilities {
 		final Title title = Main.getTitle();
 		final GameMode gameMode = player.getGameMode();
 
-		if (gameMode == GameMode.CREATIVE && !Config.SPECTATE_RESPAWN_FOR_PLAYERS_IN_CREATIVE.getBoolenValue())
+		if ((gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR) && !Config.SPECTATE_RESPAWN_FOR_PLAYERS_IN_CREATIVE.getBoolenValue())
 			return;
 		
 		int duration = Config.SPECTATE_RESPAWN_LENGTH.getIntValue();
@@ -206,12 +213,6 @@ public class Utilities {
 		title.sendTitle(player, 14, 30, 30, Config.SPECTATE_RESPAWN_PROGRESS_TITLE.getFormattedValue(player, 0), ChatColor.RED + "" + duration);
 		Main.spectatorsGamemode.put(player.getUniqueId(), gameMode);
 		player.setGameMode(GameMode.SPECTATOR);
-
-		Bukkit.getScheduler().scheduleSyncDelayedTask(Main.plugin, new Runnable() {
-			public void run() {
-				player.teleport(deathLocation);
-			}
-		}, 1L);
 		
 		new BukkitRunnable() {
 			
@@ -221,11 +222,15 @@ public class Utilities {
 			public void run() {
 
 				if (counter > 0) {
+					
+					if(player.getLocation().getBlockY() < 0 || player.getWorld() != deathLocation.getWorld() || player.getLocation().distance(deathLocation) > Config.SPECTATE_RESPAWN_MAX_FLY_DISTANCE.getIntValue())
+						player.teleport(deathLocation);
+		
 					title.sendTitle(player, 7, 15, 15, Config.SPECTATE_RESPAWN_PROGRESS_TITLE.getFormattedValue(player, 0), ChatColor.RED + "" + counter);
 					counter--;
-					return;
+					return;		
 				}
-
+				
 				player.setGameMode(gameMode);
 				player.teleport(respawnLocation);
 				Main.spectatorsGamemode.remove(player.getUniqueId());
@@ -233,7 +238,6 @@ public class Utilities {
 				title.sendTitle(player, 7, 15, 15, Config.SPECTATE_RESPAWN_TITLE_LINE_1.getFormattedValue(player, distance), Config.SPECTATE_RESPAWN_TITLE_LINE_2.getFormattedValue(player, distance));
 
 				runCommands(player);
-
 				this.cancel();
 			}
 		}.runTaskTimer(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), 2, 20);

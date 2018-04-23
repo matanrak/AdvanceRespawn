@@ -7,7 +7,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class PublicCommands implements CommandExecutor {
+public class Commands implements CommandExecutor {
 
 	
 	public String prefix = ChatColor.DARK_GREEN + "Advance Respawn" + ChatColor.GRAY.toString() + " | ";
@@ -29,6 +29,14 @@ public class PublicCommands implements CommandExecutor {
 				return true;
 			}
 			
+			
+			if (args[0].equalsIgnoreCase("settings")) {
+			
+				player.sendMessage(ChatColor.GREEN + "  /AR Settings List " + ChatColor.GRAY + " | Lists all editable settings");
+				player.sendMessage(ChatColor.GREEN + "  /AR Settings Edit {setting} {new_value}" + ChatColor.GRAY + " | Edit a specified setting");
+			}
+			
+				
 			if (args[0].equalsIgnoreCase("reload")) {
 				if (player.hasPermission("AdvanceRespawn.reload")) {
 					
@@ -42,6 +50,7 @@ public class PublicCommands implements CommandExecutor {
 				}
 			}
 
+			
 			if (args[0].equalsIgnoreCase("info")) {
 
 				String version = Bukkit.getPluginManager().getPlugin("AdvanceRespawn").getDescription().getVersion();

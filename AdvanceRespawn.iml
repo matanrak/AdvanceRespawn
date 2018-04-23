@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="EclipseModuleManager">
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.9.2.jar" />
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.12.jar" />
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.10.2-R0.1-SNAPSHOT-latest.jar" />
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/Spigot_1_8_7.jar" />
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1_11.jar" />
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.9.4-R0.1-SNAPSHOT-latest.jar" />
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/HolographicDisplays.jar" />
+    <libelement value="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/Holograms-2.5.0-SNAPSHOT.jar" />
+    <varelement var="file://$ECLIPSE_HOME$" value="ECLIPSE_HOME" />
+    <src_description expected_position="0">
+      <src_folder value="file://$MODULE_DIR$/src" expected_position="0" />
+    </src_description>
+  </component>
+  <component name="NewModuleRootManager">
+    <output url="file://$MODULE_DIR$/target/classes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="ECLIPSE_HOME">
+        <CLASSES>
+          <root url="file://$ECLIPSE_HOME$" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="jdk" jdkName="JavaSE-1.8" jdkType="JavaSDK" />
+    <orderEntry type="module-library">
+      <library name="spigot-1.9.2.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.9.2.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="spigot-1.12.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.12.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="spigot-1.10.2-R0.1-SNAPSHOT-latest.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.10.2-R0.1-SNAPSHOT-latest.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Spigot_1_8_7.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/Spigot_1_8_7.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="spigot-1_11.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1_11.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="spigot-1.9.4-R0.1-SNAPSHOT-latest.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/spigot-1.9.4-R0.1-SNAPSHOT-latest.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="HolographicDisplays.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/HolographicDisplays.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Holograms-2.5.0-SNAPSHOT.jar">
+        <CLASSES>
+          <root url="file:///Users/matanrak/Documents/Code/Java/Eclipse Workspace/Jars and files/Holograms-2.5.0-SNAPSHOT.jar" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>
