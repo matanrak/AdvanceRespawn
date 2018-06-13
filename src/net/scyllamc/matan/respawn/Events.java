@@ -61,13 +61,14 @@ public class Events implements Listener {
 		if (deathLocations.containsKey(player.getUniqueId()))
 			deathLocation = deathLocations.get(player.getUniqueId());
 		
-		int distance = (int) deathLocation.distance(respawnLocation);
-		
+
 		if (Config.DISABLED_WORLDS.getArrayValue().contains(deathLocation.getWorld().getName())) 
 			return;
 		
 		if (Config.USE_RADIUS.getBoolenValue()) 
 			respawnLocation = Utilities.getRandomSpawnLocation(deathLocation);
+
+		int distance = (int) deathLocation.distance(respawnLocation);
 	
 		if (Config.SHOW_HOLOGRAMS.getBoolenValue() && Main.usingHolograms) 
 			Main.holo.spawnHolo(player);
