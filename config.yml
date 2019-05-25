@@ -5,6 +5,7 @@
 
 
 #-==={ Respawn Settings }===-#
+Spawn_Randomly: true
 Auto_Respawn: true
 Use_Radius: true
 Min_Radius: 30
@@ -27,9 +28,11 @@ Disabled_Worlds:
 #when a player dies he will respawn in spectator mode until a set time
 Spectate_Respawn: false
 Spectate_Respawn_Length: 4
+Spectate_Respawn_Continue_Timer_After_Logout: false
 Spectate_Respawn_Max_Fly_Distance: 100
 Spectate_Respawn_For_Players_In_Creative: false
 Spectate_Respawn_Progress_Title: '&2Respawning...!'
+Spectate_Respawn_Progress_Title_Line2: '&7Respawning in {countdown} seconds'
 Spectate_Respawn_Title_Line_1: '&cRespawned!'
 Spectate_Respawn_Title_Line_2: '&aYou have respawned &2{blocks} &ablocks away'
 

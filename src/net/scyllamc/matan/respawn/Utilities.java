@@ -90,11 +90,13 @@ public class Utilities {
 		
 		string = string.replace("{damage}", String.valueOf(numericValue));
 		string = string.replace("{blocks}", String.valueOf(numericValue));
+		string = string.replace("{countdown}", String.valueOf(numericValue));
 		string = string.replace("{player}", p.getName());
-		
+
 		if (numericValue != Integer.MAX_VALUE)
-			string = string.replace("{cause}", Utilities.getDeathMessage(p));
-	
+			string = string.replace("{reason}", Utilities.getDeathMessage(p));
+		
+		
 		return ChatColor.translateAlternateColorCodes('&', string);
 	}
 	
@@ -183,7 +185,7 @@ public class Utilities {
 
 	
 	public static Location getRandomSpawnLocation(Location loc) {
-
+		
 		Location selected = getRandomLocationAround(loc);
 		int count = 0;
 
@@ -201,17 +203,26 @@ public class Utilities {
 
 	
 	public static void deathSpectate(Player player, Location deathLocation, Location respawnLocation) {
+		
+		int duration = Config.SPECTATE_RESPAWN_LENGTH.getIntValue();
 
+		deathSpectate(player, deathLocation, respawnLocation, duration);
+	}
+
+	public static void deathSpectate(Player player, Location deathLocation, Location respawnLocation, int duration) {
+		
+		if (Main.toggledDeathSpectate.contains(player.getUniqueId()))
+			return;
+		
 		final Title title = Main.getTitle();
 		final GameMode gameMode = player.getGameMode();
 
 		if ((gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR) && !Config.SPECTATE_RESPAWN_FOR_PLAYERS_IN_CREATIVE.getBoolenValue())
 			return;
 		
-		int duration = Config.SPECTATE_RESPAWN_LENGTH.getIntValue();
-
 		title.sendTitle(player, 14, 30, 30, Config.SPECTATE_RESPAWN_PROGRESS_TITLE.getFormattedValue(player, 0), ChatColor.RED + "" + duration);
 		Main.spectatorsGamemode.put(player.getUniqueId(), gameMode);
+		
 		player.setGameMode(GameMode.SPECTATOR);
 		
 		new BukkitRunnable() {
@@ -220,24 +231,44 @@ public class Utilities {
 
 			@Override
 			public void run() {
-
+				
+				if (Main.spectatorsCountdown.getOrDefault(player.getUniqueId(), 0) == -1)
+					counter = 0;
+				
+				Main.spectatorsCountdown.put(player.getUniqueId(), counter);
+				
+				if (!player.isOnline()) {
+					this.cancel();
+					return;
+				}
+				
 				if (counter > 0) {
 					
 					if(player.getLocation().getBlockY() < 0 || player.getWorld() != deathLocation.getWorld() || player.getLocation().distance(deathLocation) > Config.SPECTATE_RESPAWN_MAX_FLY_DISTANCE.getIntValue())
 						player.teleport(deathLocation);
 		
-					title.sendTitle(player, 7, 15, 15, Config.SPECTATE_RESPAWN_PROGRESS_TITLE.getFormattedValue(player, 0), ChatColor.RED + "" + counter);
+					title.sendTitle(player, 7, 15, 15, Config.SPECTATE_RESPAWN_PROGRESS_TITLE.getFormattedValue(player, 0), Config.SPECTATE_RESPAWN_PROGRESS_TITLE_LINE2.getFormattedValue(player, counter));
+					
 					counter--;
+					
 					return;		
 				}
 				
 				player.setGameMode(gameMode);
 				player.teleport(respawnLocation);
-				Main.spectatorsGamemode.remove(player.getUniqueId());
+				
+				if (Main.spectatorsGamemode.containsKey(player.getUniqueId()))
+					Main.spectatorsGamemode.remove(player.getUniqueId());
+				
+				if (Main.spectatorsCountdown.containsKey(player.getUniqueId()))
+					Main.spectatorsCountdown.remove(player.getUniqueId());
+
+				
 				int distance = (int) Math.round(deathLocation.distance(respawnLocation));
 				title.sendTitle(player, 7, 15, 15, Config.SPECTATE_RESPAWN_TITLE_LINE_1.getFormattedValue(player, distance), Config.SPECTATE_RESPAWN_TITLE_LINE_2.getFormattedValue(player, distance));
 
 				runCommands(player);
+				
 				this.cancel();
 			}
 		}.runTaskTimer(Bukkit.getPluginManager().getPlugin("AdvanceRespawn"), 2, 20);
@@ -256,3 +287,4 @@ public class Utilities {
 	}
 
 }
+

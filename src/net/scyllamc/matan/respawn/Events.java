@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -21,7 +22,7 @@ public class Events implements Listener {
 	public static HashMap<UUID, PlayerDeathEvent> deathEvents = new HashMap<UUID, PlayerDeathEvent>();
 	public static HashMap<UUID, Location> deathLocations = new HashMap<UUID, Location>();
 
-	
+
 	@EventHandler
 	public void Death(PlayerDeathEvent event) {
 
@@ -45,8 +46,11 @@ public class Events implements Listener {
 				}
 			}, 1L);
 		
-		if (Config.USE_DEATH_MESSAGE.getBoolenValue()) 
-			event.setDeathMessage(Config.DEATH_MESSAGE.getFormattedValue(player, 0).replace("{reason}", Utilities.getDeathMessage(player)));
+		if (Config.USE_DEATH_MESSAGE.getBoolenValue())
+			event.setDeathMessage(Config.DEATH_MESSAGE.getFormattedValue(player, 0));	
+		
+		if (Config.SHOW_HOLOGRAMS.getBoolenValue() && Main.usingHolograms) 
+			Main.holo.spawnHolo(player);
 	}
 
 	
@@ -56,12 +60,8 @@ public class Events implements Listener {
 		Player player = event.getPlayer();
 		
 		Location respawnLocation = player.getWorld().getSpawnLocation();
-		Location deathLocation = player.getLocation();
+		Location deathLocation = deathLocations.getOrDefault(player.getUniqueId(), player.getLocation());
 		
-		if (deathLocations.containsKey(player.getUniqueId()))
-			deathLocation = deathLocations.get(player.getUniqueId());
-		
-
 		if (Config.DISABLED_WORLDS.getArrayValue().contains(deathLocation.getWorld().getName())) 
 			return;
 		
@@ -69,9 +69,6 @@ public class Events implements Listener {
 			respawnLocation = Utilities.getRandomSpawnLocation(deathLocation);
 
 		int distance = (int) deathLocation.distance(respawnLocation);
-	
-		if (Config.SHOW_HOLOGRAMS.getBoolenValue() && Main.usingHolograms) 
-			Main.holo.spawnHolo(player);
 
 		if (Config.SHOW_RESPAWN_TITLES.getBoolenValue() && Main.title != null) 
 			Main.getTitle().sendTitle(player, 7, 15, 15, Config.RESPAWN_TITLE_LINE_1.getFormattedValue(player, distance), Config.RESPAWN_TITLE_LINE_2.getFormattedValue(player, distance));
@@ -83,24 +80,45 @@ public class Events implements Listener {
 		}
 		
 		Utilities.runCommands(player);
-		event.setRespawnLocation(respawnLocation);
+		
+		if (Config.USE_RADIUS.getBoolenValue()) 
+			event.setRespawnLocation(respawnLocation);
 	}
 
 	
 	@EventHandler
-	public void leave(PlayerQuitEvent e) {
+	public void join(PlayerJoinEvent event) {
 		
-		Player p = e.getPlayer();
+		Player player = event.getPlayer();
 		
-		if (Main.spectatorsGamemode.containsKey(p.getUniqueId())) {
+		if(Config.SPECTATE_RESPAWN_CONTINUE_TIMER_AFTER_LOGOUT.getBoolenValue() && Main.cachedRespawnLocation.containsKey(player.getUniqueId()) && Main.spectatorsCountdown.containsKey(player.getUniqueId())) {
 			
-			p.setGameMode(Main.spectatorsGamemode.get(p.getUniqueId()));
-			Location l = p.getLocation();
-		
-			Location respawn = Utilities.getRandomSpawnLocation(l);
-			p.teleport(respawn);
+			Location respawnLocation = Main.cachedRespawnLocation.get(player.getUniqueId());
+			int time_left = Main.spectatorsCountdown.get(player.getUniqueId());
 			
-			Main.spectatorsGamemode.remove(p.getUniqueId());
+			Utilities.deathSpectate(player, player.getLocation(), respawnLocation, time_left);
+		}
+
+	}
+	
+	@EventHandler
+	public void leave(PlayerQuitEvent event) {
+		
+		Player player = event.getPlayer();
+		
+		if (Main.spectatorsGamemode.containsKey(player.getUniqueId())) {
+			
+			player.setGameMode(Main.spectatorsGamemode.get(player.getUniqueId()));
+			Location respawn = Utilities.getRandomSpawnLocation(player.getLocation());
+			
+			Main.cachedRespawnLocation.put(player.getUniqueId(), respawn);
+			
+			if(Config.SPECTATE_RESPAWN_CONTINUE_TIMER_AFTER_LOGOUT.getBoolenValue())
+				return;
+			
+			player.teleport(respawn);
+			
+			Main.spectatorsGamemode.remove(player.getUniqueId());
 		}
 	}
 	

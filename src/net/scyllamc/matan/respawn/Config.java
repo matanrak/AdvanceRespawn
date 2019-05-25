@@ -18,7 +18,7 @@ import org.bukkit.plugin.Plugin;
 
 
 public enum Config {
-
+	
 	AUTO_RESPAWN(true),
 	USE_RADIUS(true),
 	MAX_RADIUS(40),
@@ -31,9 +31,11 @@ public enum Config {
 
 	SPECTATE_RESPAWN(false),
 	SPECTATE_RESPAWN_LENGTH(4),
+	SPECTATE_RESPAWN_CONTINUE_TIMER_AFTER_LOGOUT(false),
 	SPECTATE_RESPAWN_MAX_FLY_DISTANCE(100),
 	SPECTATE_RESPAWN_FOR_PLAYERS_IN_CREATIVE(false),
 	SPECTATE_RESPAWN_PROGRESS_TITLE("&2Respawning...!"),
+	SPECTATE_RESPAWN_PROGRESS_TITLE_LINE2("&7Respawning in {countdown} seconds"),
 	SPECTATE_RESPAWN_TITLE_LINE_1("&cRespawned!"),
 	SPECTATE_RESPAWN_TITLE_LINE_2("&aYou have respawned &2%blocks% &ablocks away"),
 

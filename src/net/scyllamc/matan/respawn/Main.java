@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -12,6 +13,7 @@ import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -26,6 +28,9 @@ import net.scyllamc.matan.respawn.titles.Title;
 import net.scyllamc.matan.respawn.titles.Title_1_10;
 import net.scyllamc.matan.respawn.titles.Title_1_11;
 import net.scyllamc.matan.respawn.titles.Title_1_12;
+import net.scyllamc.matan.respawn.titles.Title_1_13;
+import net.scyllamc.matan.respawn.titles.Title_1_13_1;
+import net.scyllamc.matan.respawn.titles.Title_1_14;
 import net.scyllamc.matan.respawn.titles.Title_1_8;
 import net.scyllamc.matan.respawn.titles.Title_1_9;
 import net.scyllamc.matan.respawn.titles.Title_1_9_4;
@@ -43,8 +48,11 @@ public class Main extends JavaPlugin implements Listener {
 	public static File casue_dictionary_file;
 
 	public static HashMap<UUID, GameMode> spectatorsGamemode = new HashMap<UUID, GameMode>();
+	public static HashMap<UUID, Integer> spectatorsCountdown = new HashMap<UUID, Integer>();
+	public static HashMap<UUID, Location> cachedRespawnLocation = new HashMap<UUID, Location>();
 	public static HashMap<UUID, String> deathCauseCache = new HashMap<UUID, String>();
-
+	
+	public static ArrayList<UUID> toggledDeathSpectate = new ArrayList<UUID>();
 	
 	@Override
 	public void onEnable() {
@@ -110,7 +118,15 @@ public class Main extends JavaPlugin implements Listener {
 		}
 
 		switch (version) {
-		
+		case "v1_14_R1":
+			title = new Title_1_14();
+			break;
+		case "v1_13_R2":
+			title = new Title_1_13_1();
+			break;
+		case "v1_13_R1":
+			title = new Title_1_13();
+			break;
 		case "v1_12_R1":
 			title = new Title_1_12();
 			break;
